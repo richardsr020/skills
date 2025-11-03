@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin - Skills</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+            border-radius: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+        
+        .alert {
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(10px);
+            border: 1px solid;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.2);
+            color: #065f46;
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-white to-pink-50 min-h-screen">
+    <!-- Navigation Admin -->
+    <nav class="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-lg border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-4">
+                    <div class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-brain mr-3 text-pink-500"></i>Skills Admin
+                    </div>
+                    <div class="hidden md:flex space-x-1">
+                        <button onclick="showSection('overview')" id="btnOverview" class="px-4 py-2 text-pink-600 font-medium border-b-2 border-pink-600 transition-colors">
+                            Aperçu
+                        </button>
+                        <button onclick="showSection('contacts')" id="btnContacts" class="px-4 py-2 text-gray-600 hover:text-pink-600 font-medium transition-colors">
+                            Contacts
+                        </button>
+                        <button onclick="showSection('analytics')" id="btnAnalytics" class="px-4 py-2 text-gray-600 hover:text-pink-600 font-medium transition-colors">
+                            Analytics
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-600 hidden md:block" id="lastUpdated"></span>
+                    <button onclick="refreshData()" class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i>
+                        <span id="refreshText">Actualiser</span>
+                        <div id="refreshSpinner" class="loading-spinner ml-2 hidden"></div>
+                    </button>
+                    <a href="/" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                        <i class="fas fa-home mr-2"></i>Site
+                    </a>
+                    <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Déconnexion
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-8">
+        <!-- Section Aperçu -->
+        <div id="sectionOverview" class="section-content">
+            <!-- Alertes -->
+            <div id="alertsContainer" class="mb-6"></div>
+
+            <!-- Statistiques principales -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glass-card rounded-3xl p-6 border-l-4 border-pink-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Contacts</p>
+                            <p class="text-3xl font-bold text-gray-800" id="totalContacts">0</p>
+                            <p class="text-xs text-green-600 mt-1">
+                                <i class="fas fa-users mr-1"></i>Tous les leads
+                            </p>
+                        </div>
+                        <i class="fas fa-users text-2xl text-pink-500"></i>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-6 border-l-4 border-green-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Profils Complets</p>
+                            <p class="text-3xl font-bold text-gray-800" id="completeProfiles">0</p>
+                            <p class="text-xs text-gray-500 mt-1" id="conversionRate">0% de conversion</p>
+                        </div>
+                        <i class="fas fa-check-circle text-2xl text-green-500"></i>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-6 border-l-4 border-blue-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total Visites</p>
+                            <p class="text-3xl font-bold text-gray-800" id="totalVisits">0</p>
+                            <p class="text-xs text-gray-500 mt-1" id="todayVisits">0 aujourd'hui</p>
+                        </div>
+                        <i class="fas fa-eye text-2xl text-blue-500"></i>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-6 border-l-4 border-purple-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Taux de Conversion</p>
+                            <p class="text-3xl font-bold text-gray-800" id="globalConversionRate">0%</p>
+                            <p class="text-xs text-gray-500 mt-1">Visites → Inscriptions</p>
+                        </div>
+                        <i class="fas fa-chart-line text-2xl text-purple-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deuxième ligne de statistiques -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="glass-card rounded-3xl p-6 border-l-4 border-orange-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Email Seulement</p>
+                            <p class="text-3xl font-bold text-gray-800" id="emailOnly">0</p>
+                            <p class="text-xs text-gray-500 mt-1">Contacts partiels</p>
+                        </div>
+                        <i class="fas fa-envelope text-2xl text-orange-500"></i>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-6 border-l-4 border-indigo-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Téléphone Seulement</p>
+                            <p class="text-3xl font-bold text-gray-800" id="phoneOnly">0</p>
+                            <p class="text-xs text-gray-500 mt-1">Contacts partiels</p>
+                        </div>
+                        <i class="fas fa-phone text-2xl text-indigo-500"></i>
+                    </div>
+                </div>
+                
+                <div class="glass-card rounded-3xl p-6 border-l-4 border-teal-500">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Ratio V/I</p>
+                            <p class="text-3xl font-bold text-gray-800" id="visitRatio">0:1</p>
+                            <p class="text-xs text-gray-500 mt-1">Visites par inscription</p>
+                        </div>
+                        <i class="fas fa-balance-scale text-2xl text-teal-500"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphiques et tableau -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Graphique des sources -->
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Sources d'acquisition</h3>
+                    <div class="h-64">
+                        <canvas id="sourcesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Évolution des inscriptions -->
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Inscriptions (7 derniers jours)</h3>
+                    <div class="h-64">
+                        <canvas id="signupsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Derniers contacts -->
+                <div class="lg:col-span-2 glass-card rounded-3xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Derniers Contacts</h3>
+                        <button onclick="showSection('contacts')" class="text-pink-600 hover:text-pink-700 text-sm font-medium">
+                            Voir tout <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Coordonnées</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentContactsTable" class="divide-y divide-gray-200">
+                                <!-- Les données seront insérées ici -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Contacts -->
+        <div id="sectionContacts" class="section-content hidden">
+            <div class="glass-card rounded-3xl p-6">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 lg:mb-0">Gestion des Contacts</h2>
+                    <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4">
+                        <div class="relative">
+                            <input type="text" id="searchContacts" placeholder="Rechercher..." 
+                                   class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-pink-500">
+                            <option value="">Tous les statuts</option>
+                            <option value="complete">Profils complets</option>
+                            <option value="email_only">Email seulement</option>
+                            <option value="phone_only">Téléphone seulement</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nom</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Téléphone</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Source</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Profil</th>
+                            </tr>
+                        </thead>
+                        <tbody id="allContactsTable" class="divide-y divide-gray-200">
+                            <!-- Les données seront insérées ici -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section Analytics -->
+        <div id="sectionAnalytics" class="section-content hidden">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Métriques détaillées -->
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Métriques de Performance</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center p-4 bg-pink-50 rounded-lg">
+                            <span class="text-gray-700">Taux de conversion global</span>
+                            <span class="text-2xl font-bold text-pink-600" id="detailedConversionRate">0%</span>
+                        </div>
+                        <div class="flex justify-between items-center p-4 bg-green-50 rounded-lg">
+                            <span class="text-gray-700">Profils complets</span>
+                            <span class="text-2xl font-bold text-green-600" id="detailedComplete">0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-4 bg-blue-50 rounded-lg">
+                            <span class="text-gray-700">Email seulement</span>
+                            <span class="text-2xl font-bold text-blue-600" id="detailedEmailOnly">0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-4 bg-orange-50 rounded-lg">
+                            <span class="text-gray-700">Téléphone seulement</span>
+                            <span class="text-2xl font-bold text-orange-600" id="detailedPhoneOnly">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Répartition des profils -->
+                <div class="glass-card rounded-3xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Répartition des Profils</h3>
+                    <div class="h-64">
+                        <canvas id="profilesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Graphique des visites vs inscriptions -->
+                <div class="lg:col-span-2 glass-card rounded-3xl p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Visites vs Inscriptions (7 derniers jours)</h3>
+                    <div class="h-64">
+                        <canvas id="visitsVsSignupsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSection = 'overview';
+        let contactsData = [];
+        let sourcesChart = null;
+        let signupsChart = null;
+        let profilesChart = null;
+        let visitsVsSignupsChart = null;
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAdminData();
+            setInterval(loadAdminData, 30000); // Actualisation toutes les 30 secondes
+        });
+
+        // Navigation entre sections
+        function showSection(section) {
+            document.querySelectorAll('.section-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('text-pink-600', 'border-b-2', 'border-pink-600');
+                btn.classList.add('text-gray-600', 'hover:text-pink-600');
+            });
+            
+            document.getElementById(`section${section.charAt(0).toUpperCase() + section.slice(1)}`).classList.remove('hidden');
+            document.getElementById(`btn${section.charAt(0).toUpperCase() + section.slice(1)}`).classList.add('text-pink-600', 'border-b-2', 'border-pink-600');
+            document.getElementById(`btn${section.charAt(0).toUpperCase() + section.slice(1)}`).classList.remove('text-gray-600', 'hover:text-pink-600');
+            
+            currentSection = section;
+        }
+
+        // Chargement des données admin
+        // Chargement des données admin
+        async function loadAdminData() {
+            try {
+                document.getElementById('refreshSpinner').classList.remove('hidden');
+                document.getElementById('refreshText').textContent = 'Actualisation...';
+
+                // Utiliser le mot de passe dans l'URL ou demander à l'utilisateur
+                const urlParams = new URLSearchParams(window.location.search);
+                let password = urlParams.get('password');
+                
+                if (!password) {
+                    // Si pas dans l'URL, demander à l'utilisateur
+                    password = prompt('Veuillez entrer le mot de passe admin:');
+                    if (!password) {
+                        window.location.href = '/adm';
+                        return;
+                    }
+                    // Ajouter le mot de passe à l'URL pour les prochaines requêtes
+                    const newUrl = new URL(window.location);
+                    newUrl.searchParams.set('password', password);
+                    window.history.replaceState({}, '', newUrl);
+                }
+
+                const response = await fetch(`/api/admin/analytics?password=${encodeURIComponent(password)}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        // Supprimer le mot de passe de l'URL et rediriger
+                        const cleanUrl = new URL(window.location);
+                        cleanUrl.searchParams.delete('password');
+                        window.history.replaceState({}, '', cleanUrl);
+                        window.location.href = '/adm';
+                        return;
+                    }
+                    throw new Error(data.detail || 'Erreur de chargement');
+                }
+                
+                updateDashboard(data.analytics);
+                updateCharts(data.analytics);
+                contactsData = data.contacts;
+                updateContactsTables(data.contacts);
+                
+                document.getElementById('lastUpdated').textContent = `Mis à jour: ${new Date().toLocaleTimeString('fr-FR')}`;
+                
+            } catch (error) {
+                console.error('Erreur lors du chargement des données admin:', error);
+                if (error.message.includes('401') || error.message.includes('Non autorisé')) {
+                    const cleanUrl = new URL(window.location);
+                    cleanUrl.searchParams.delete('password');
+                    window.history.replaceState({}, '', cleanUrl);
+                    window.location.href = '/adm';
+                } else {
+                    showAlert('Erreur lors du chargement des données: ' + error.message, 'error');
+                }
+            } finally {
+                document.getElementById('refreshSpinner').classList.add('hidden');
+                document.getElementById('refreshText').textContent = 'Actualiser';
+            }
+        }
+
+        // Mise à jour du dashboard
+        function updateDashboard(analytics) {
+            document.getElementById('totalContacts').textContent = analytics.total_users;
+            document.getElementById('completeProfiles').textContent = analytics.complete_profiles;
+            document.getElementById('emailOnly').textContent = analytics.email_only;
+            document.getElementById('phoneOnly').textContent = analytics.phone_only;
+            document.getElementById('totalVisits').textContent = analytics.visits.total_visits;
+            document.getElementById('todayVisits').textContent = analytics.visits.today_visits + ' aujourd\'hui';
+            document.getElementById('globalConversionRate').textContent = analytics.conversion_rate.toFixed(1) + '%';
+            
+            // Calcul du ratio visites/inscriptions
+            const visitRatio = analytics.visits.total_visits > 0 ? 
+                (analytics.visits.total_visits / analytics.total_users).toFixed(1) : 0;
+            document.getElementById('visitRatio').textContent = visitRatio + ':1';
+            
+            // Taux de conversion des profils complets
+            const profileConversionRate = analytics.total_users > 0 ? 
+                (analytics.complete_profiles / analytics.total_users * 100).toFixed(1) : 0;
+            document.getElementById('conversionRate').textContent = profileConversionRate + '% de complétion';
+            
+            // Métriques détaillées
+            document.getElementById('detailedConversionRate').textContent = analytics.conversion_rate.toFixed(1) + '%';
+            document.getElementById('detailedComplete').textContent = analytics.complete_profiles;
+            document.getElementById('detailedEmailOnly').textContent = analytics.email_only;
+            document.getElementById('detailedPhoneOnly').textContent = analytics.phone_only;
+        }
+
+        // Mise à jour des graphiques
+        function updateCharts(analytics) {
+            updateSourcesChart(analytics.sources);
+            updateSignupsChart(analytics.last_7_days_signups);
+            updateProfilesChart(analytics);
+            updateVisitsVsSignupsChart(analytics);
+        }
+
+        function updateSourcesChart(sources) {
+            const ctx = document.getElementById('sourcesChart').getContext('2d');
+            
+            if (sourcesChart) {
+                sourcesChart.destroy();
+            }
+            
+            const labels = Object.keys(sources).map(source => {
+                const labelsMap = {
+                    'hero_section': 'Section Hero',
+                    'bottom_section': 'Section Basse',
+                    'unknown': 'Non spécifié'
+                };
+                return labelsMap[source] || source;
+            });
+            
+            sourcesChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: Object.values(sources),
+                        backgroundColor: ['#ec4899', '#c084fc', '#6b7280'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSignupsChart(last7Days) {
+            const ctx = document.getElementById('signupsChart').getContext('2d');
+            
+            if (signupsChart) {
+                signupsChart.destroy();
+            }
+
+            const dates = last7Days.map(day => new Date(day.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })).reverse();
+            const counts = last7Days.map(day => day.count).reverse();
+
+            signupsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Inscriptions',
+                        data: counts,
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateProfilesChart(analytics) {
+            const ctx = document.getElementById('profilesChart').getContext('2d');
+            
+            if (profilesChart) {
+                profilesChart.destroy();
+            }
+
+            profilesChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Profils Complets', 'Email Seulement', 'Téléphone Seulement'],
+                    datasets: [{
+                        data: [
+                            analytics.complete_profiles,
+                            analytics.email_only,
+                            analytics.phone_only
+                        ],
+                        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateVisitsVsSignupsChart(analytics) {
+            const ctx = document.getElementById('visitsVsSignupsChart').getContext('2d');
+            
+            // Préparer les données pour les 7 derniers jours
+            const visitsByDate = {};
+            analytics.visits.last_7_days.forEach(day => {
+                visitsByDate[day.date] = day.count;
+            });
+            
+            const signupsByDate = {};
+            analytics.last_7_days_signups.forEach(day => {
+                signupsByDate[day.date] = day.count;
+            });
+            
+            // Créer des tableaux alignés pour les 7 derniers jours
+            const dates = [];
+            const visitsData = [];
+            const signupsData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                
+                dates.push(new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }));
+                visitsData.push(visitsByDate[dateStr] || 0);
+                signupsData.push(signupsByDate[dateStr] || 0);
+            }
+            
+            if (visitsVsSignupsChart) {
+                visitsVsSignupsChart.destroy();
+            }
+            
+            visitsVsSignupsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Visites',
+                            data: visitsData,
+                            backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                            borderColor: '#8b5cf6',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Inscriptions',
+                            data: signupsData,
+                            backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                            borderColor: '#ec4899',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Mise à jour des tables de contacts
+        function updateContactsTables(contacts) {
+            updateRecentContacts(contacts.slice(0, 5));
+            updateAllContacts(contacts);
+        }
+
+        function updateRecentContacts(contacts) {
+            const tableBody = document.getElementById('recentContactsTable');
+            
+            tableBody.innerHTML = contacts.map(contact => `
+                <tr class="fade-in">
+                    <td class="px-4 py-3 text-sm">
+                        <div class="font-medium text-gray-900">${contact.first_name || 'Non renseigné'} ${contact.last_name || ''}</div>
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <div class="text-gray-900">${contact.email || 'Non renseigné'}</div>
+                        <div class="text-gray-500">${contact.phone || 'Non renseigné'}</div>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                        ${getSourceLabel(contact.source)}
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                        ${new Date(contact.signup_date).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <span class="px-2 py-1 rounded-full text-xs ${getProfileBadgeClass(contact)}">
+                            ${getProfileLabel(contact)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateAllContacts(contacts) {
+            const tableBody = document.getElementById('allContactsTable');
+            
+            tableBody.innerHTML = contacts.map(contact => `
+                <tr class="fade-in">
+                    <td class="px-4 py-3 text-sm">
+                        <div class="font-medium text-gray-900">${contact.first_name || 'Non renseigné'} ${contact.last_name || ''}</div>
+                    </td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${contact.email || 'Non renseigné'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-900">${contact.phone || 'Non renseigné'}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">${getSourceLabel(contact.source)}</td>
+                    <td class="px-4 py-3 text-sm text-gray-500">
+                        ${new Date(contact.signup_date).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td class="px-4 py-3 text-sm">
+                        <span class="px-2 py-1 rounded-full text-xs ${getProfileBadgeClass(contact)}">
+                            ${getProfileLabel(contact)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Fonctions utilitaires
+        function getSourceLabel(source) {
+            const sources = {
+                'hero_section': 'Section Hero',
+                'bottom_section': 'Section Basse',
+                'unknown': 'Non spécifié'
+            };
+            return sources[source] || source;
+        }
+
+        function getProfileLabel(contact) {
+            if (contact.email && contact.phone) return 'Complet';
+            if (contact.email) return 'Email seulement';
+            if (contact.phone) return 'Téléphone seulement';
+            return 'Incomplet';
+        }
+
+        function getProfileBadgeClass(contact) {
+            if (contact.email && contact.phone) return 'bg-green-100 text-green-800';
+            if (contact.email) return 'bg-blue-100 text-blue-800';
+            if (contact.phone) return 'bg-orange-100 text-orange-800';
+            return 'bg-gray-100 text-gray-800';
+        }
+
+        // Gestion des alertes
+        function showAlert(message, type) {
+            const container = document.getElementById('alertsContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert ${type === 'error' ? 'alert-error' : 'alert-success'} fade-in`;
+            alert.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'check-circle'} mr-2"></i>
+                        ${message}
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(alert);
+            
+            setTimeout(() => {
+                if (alert.parentElement) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Rafraîchissement manuel
+        function refreshData() {
+            loadAdminData();
+        }
+
+        // Déconnexion
+        function logout() {
+            window.location.href = '/adm';
+        }
+
+        // Recherche et filtres
+        document.getElementById('searchContacts')?.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredContacts = contactsData.filter(contact => 
+                (contact.first_name && contact.first_name.toLowerCase().includes(searchTerm)) ||
+                (contact.last_name && contact.last_name.toLowerCase().includes(searchTerm)) ||
+                (contact.email && contact.email.toLowerCase().includes(searchTerm)) ||
+                (contact.phone && contact.phone.includes(searchTerm))
+            );
+            updateAllContacts(filteredContacts);
+        });
+
+        document.getElementById('filterStatus')?.addEventListener('change', function(e) {
+            const filter = e.target.value;
+            let filteredContacts = contactsData;
+            
+            if (filter === 'complete') {
+                filteredContacts = contactsData.filter(contact => contact.email && contact.phone);
+            } else if (filter === 'email_only') {
+                filteredContacts = contactsData.filter(contact => contact.email && !contact.phone);
+            } else if (filter === 'phone_only') {
+                filteredContacts = contactsData.filter(contact => !contact.email && contact.phone);
+            }
+            
+            updateAllContacts(filteredContacts);
+        });
+    </script>
+</body>
+</html>
