@@ -1,8 +1,8 @@
 {
-    "total_visits": 6,
-    "today_visits": 6,
+    "total_visits": 19,
+    "today_visits": 19,
     "last_reset": "2025-11-07",
     "daily_visits": {
-        "2025-11-07": 6
+        "2025-11-07": 19
     }
 }

@@ -1,6 +1,164 @@
 
 
-// Initialiser le compteur - Ajoutez cette ligne à la fin de votre DOMContentLoaded
+// Animation d'écriture progressive - À ajouter dans votre main.js
+class TextAnimation {
+    constructor() {
+        this.textElement = document.getElementById('animated-text');
+        this.cursorElement = document.getElementById('typing-cursor');
+        this.skipButton = document.getElementById('skip-animation');
+        this.isAnimating = false;
+        this.currentAnimation = null;
+        
+        this.fullText = `
+            <strong>Fini les modifications manuelles de CV et de lettres de motivation !</strong><br>
+            
+            Notre <strong class="text-cyan-600">agent IA intelligent</strong> personnalise automatiquement vos documents pour chaque candidature. 
+            Un simple <strong class="text-pink-600">commandement vocal</strong> suffit pour adapter votre profil à n'importe quelle offre.<br>
+            • <span class="text-cyan-600">Recherche intelligente</span> des meilleures offres selon votre profil<br>
+            • <span class="text-pink-600">Mise en relation proactive</span> avec les employeurs potentiels<br>
+            • <span class="text-gradient-cyan-pink">Notre agent</span> vous recherche un job h24, 7j/7<br>
+            
+            <strong class="text-lg">Transformez votre carrière dès aujourd'hui ! 🚀</strong>
+        `;
+        
+        this.init();
+    }
+
+    init() {
+        if (!this.textElement) return;
+        
+        // Afficher le bouton skip après 2 secondes
+        setTimeout(() => {
+            this.skipButton.classList.remove('opacity-0');
+        }, 2000);
+
+        // Événement pour skip l'animation
+        this.skipButton.addEventListener('click', () => {
+            this.skipAnimation();
+        });
+
+        // Démarrer l'animation
+        this.startAnimation();
+    }
+
+    async startAnimation() {
+        this.isAnimating = true;
+        this.textElement.innerHTML = '';
+        
+        // Désactiver le bouton skip pendant l'animation
+        this.skipButton.style.pointerEvents = 'none';
+        
+        // Animation d'apparition du curseur
+        this.cursorElement.style.opacity = '1';
+
+        // Typewriter effect
+        await this.typeWriter(this.fullText, 15);
+        
+        // Fin de l'animation
+        this.isAnimating = false;
+        this.cursorElement.style.opacity = '0';
+        this.skipButton.style.opacity = '0';
+        this.skipButton.style.pointerEvents = 'none';
+        
+        // Petit effet de fin
+        this.textElement.classList.add('animate-pulse');
+        setTimeout(() => {
+            this.textElement.classList.remove('animate-pulse');
+        }, 1000);
+    }
+
+    async typeWriter(text, speed = 20) {
+        return new Promise((resolve) => {
+            let i = 0;
+            let currentHtml = '';
+            let inTag = false;
+            let currentTag = '';
+            
+            const type = () => {
+                if (i < text.length) {
+                    const char = text[i];
+                    
+                    // Gestion des balises HTML
+                    if (char === '<') {
+                        inTag = true;
+                        currentTag = '';
+                    }
+                    
+                    if (inTag) {
+                        currentTag += char;
+                        if (char === '>') {
+                            inTag = false;
+                            currentHtml += currentTag;
+                            this.textElement.innerHTML = currentHtml;
+                        }
+                    } else {
+                        currentHtml += char;
+                        this.textElement.innerHTML = currentHtml;
+                    }
+                    
+                    i++;
+                    
+                    // Vitesse variable selon la ponctuation
+                    let delay = speed;
+                    if (char === '.' || char === '!' || char === '?') {
+                        delay = speed * 8; // Pause plus longue après un point
+                    } else if (char === ',' || char === ';') {
+                        delay = speed * 4;
+                    } else if (char === ' ') {
+                        delay = speed * 2;
+                    }
+                    
+                    setTimeout(type, delay);
+                } else {
+                    resolve();
+                }
+            };
+            
+            type();
+        });
+    }
+
+    skipAnimation() {
+        if (this.isAnimating) {
+            this.textElement.innerHTML = this.fullText;
+            this.isAnimating = false;
+            this.cursorElement.style.opacity = '0';
+            this.skipButton.style.opacity = '0';
+            this.skipButton.style.pointerEvents = 'none';
+        }
+    }
+}
+
+// Animation de fade-in pour les éléments au scroll
+class ScrollAnimations {
+    constructor() {
+        this.observer = null;
+        this.init();
+    }
+
+    init() {
+        // Configuration de l'Intersection Observer
+        const options = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        this.observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                    this.observer.unobserve(entry.target);
+                }
+            });
+        }, options);
+
+        // Observer les éléments à animer
+        document.querySelectorAll('.glass-card, .feature-icon').forEach(el => {
+            this.observer.observe(el);
+        });
+    }
+}
 
 // Gestion des particules
 class ParticlesBackground {
@@ -286,31 +444,31 @@ class SmoothScroll {
 }
 
 // Animation au scroll
-class ScrollAnimations {
-    constructor() {
-        this.init();
-    }
+// class ScrollAnimations {
+//     constructor() {
+//         this.init();
+//     }
 
-    init() {
-        const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
-        };
+//     init() {
+//         const observerOptions = {
+//             threshold: 0.1,
+//             rootMargin: '0px 0px -50px 0px'
+//         };
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-fade-in');
-                }
-            });
-        }, observerOptions);
+//         const observer = new IntersectionObserver((entries) => {
+//             entries.forEach(entry => {
+//                 if (entry.isIntersecting) {
+//                     entry.target.classList.add('animate-fade-in');
+//                 }
+//             });
+//         }, observerOptions);
 
-        // Observer les éléments à animer
-        document.querySelectorAll('.glass-card, .feature-icon, .stat-card').forEach(el => {
-            observer.observe(el);
-        });
-    }
-}
+//         // Observer les éléments à animer
+//         document.querySelectorAll('.glass-card, .feature-icon, .stat-card').forEach(el => {
+//             observer.observe(el);
+//         });
+//     }
+// }
 
 // Initialisation au chargement de la page
 document.addEventListener('DOMContentLoaded', () => {
@@ -319,7 +477,25 @@ document.addEventListener('DOMContentLoaded', () => {
     new SmoothScroll();
     new ScrollAnimations();
     
-   
+    // Démarrer l'animation de texte après un délai
+    setTimeout(() => {
+        new TextAnimation();
+    }, 1000);
+    // Effet de vague sur le texte après l'animation
+    const animateTextWaves = () => {
+        const animatedText = document.getElementById('animated-text');
+        if (animatedText) {
+            const words = animatedText.querySelectorAll('strong');
+            words.forEach((word, index) => {
+                setTimeout(() => {
+                    word.classList.add('animate-underline');
+                }, index * 200);
+            });
+        }
+    };
+    
+    // Démarrer l'effet vague après l'animation principale
+    setTimeout(animateTextWaves, 8000);
 
     // Ajout de la classe CSS pour l'animation fade-in
     const style = document.createElement('style');

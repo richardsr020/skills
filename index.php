@@ -62,18 +62,18 @@
                 <span class="bg-gradient-to-r from-cyan-500 to-pink-500 bg-clip-text text-transparent">Skills</span>
             </h1>
             
-            <p class="text-2xl md:text-3xl text-gray-700 mb-12 max-w-4xl mx-auto leading-relaxed font-light">
-                L'IA qui révolutionne votre recherche d'emploi
-            </p>
-            
-            <p class="text-xl text-gray-600 mb-16 max-w-2xl mx-auto leading-relaxed">
-                <strong>Fini les modifications manuelles de CV et de lettres de motivation !</strong><br><br>
-                
-                Notre <strong>agent IA intelligent</strong> personnalise automatiquement vos documents pour chaque candidature. 
-                Un simple <strong>commandement vocal</strong> suffit pour adapter votre profil à n'importe quelle offre.<br><br>
-                
-            </p>
-            
+            <!-- PAR ce contenu animé -->
+            <div class="text-xl text-gray-600 mb-16 max-w-2xl mx-auto leading-relaxed">
+                <div id="animated-text" class="min-h-[200px]">
+                    <!-- Le texte sera injecté ici par JavaScript -->
+                </div>
+                <div class="flex items-center justify-center mt-8">
+                    <div id="typing-cursor" class="w-3 h-6 bg-cyan-500 rounded-sm animate-pulse ml-1"></div>
+                    <span id="skip-animation" class="ml-4 text-sm text-cyan-600 cursor-pointer hover:text-cyan-700 opacity-0 transition-opacity duration-300">
+                        Passer l'animation
+                    </span>
+                </div>
+            </div>
             <!-- Formulaire principal -->
             <div class="max-w-2xl mx-auto mb-16">
                 <div class="glass-card rounded-3xl p-8 form-container">
@@ -237,30 +237,73 @@
         </div>
     </section>
 
-    <!-- Footer -->
-    <footer class="py-12 bg-gradient-to-br from-cyan-50/20 to-pink-50/20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center">
-                <div class="text-3xl font-bold mb-4 text-gray-800">
-                    <i class="fas fa-brain mr-3 text-cyan-500"></i>Skills
-                </div>
-                <p class="text-gray-600 mb-8 text-lg">L'IA qui révolutionne votre recherche d'emploi</p>
-                <div class="flex justify-center space-x-6 mb-8">
-                    <a href="https://x.com/RichardMil56104" class="text-gray-400 hover:text-cyan-500 transition-colors text-xl">
-                        <i class="fab fa-twitter"></i>
+<!-- Footer avec WhatsApp amélioré -->
+<footer class="py-12 bg-gradient-to-br from-cyan-50/20 to-pink-50/20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center">
+            <div class="text-3xl font-bold mb-4 text-gray-800">
+                <i class="fas fa-brain mr-3 text-cyan-500"></i>Skills
+            </div>
+            <p class="text-gray-600 mb-8 text-lg">L'IA qui révolutionne votre recherche d'emploi</p>
+            
+            <!-- Section Contact -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-4xl mx-auto">
+                <!-- WhatsApp -->
+                <div class="glass-card rounded-2xl p-6 text-center hover-lift">
+                    <div class="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fab fa-whatsapp text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">WhatsApp</h3>
+                    <p class="text-gray-600 text-sm mb-3">Contact rapide</p>
+                    <a href="https://wa.me/243840149027" 
+                       class="inline-flex items-center justify-center bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-all duration-300 font-medium text-sm"
+                       target="_blank" rel="noopener noreferrer">
+                        <i class="fab fa-whatsapp mr-2"></i>
+                        Nous écrire
                     </a>
-                    <a href="https://www.linkedin.com/in/richard-m-metta-ceo-9b395b257/" class="text-gray-400 hover:text-cyan-500 transition-colors text-xl">
-                        <i class="fab fa-linkedin"></i>
+                </div>
+
+                <!-- Email -->
+                <div class="glass-card rounded-2xl p-6 text-center hover-lift">
+                    <div class="w-16 h-16 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-envelope text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Email</h3>
+                    <p class="text-gray-600 text-sm mb-3">Support détaillé</p>
+                    <a href="mailto:richardwebdeveloppeur@gmail.com" 
+                       class="inline-flex items-center justify-center bg-gradient-to-r from-cyan-500 to-pink-500 text-white px-4 py-2 rounded-lg hover:from-cyan-600 hover:to-pink-600 transition-all duration-300 font-medium text-sm"
+                       target="_blank" rel="noopener noreferrer">
+                        <i class="fas fa-envelope mr-2"></i>
+                        Nous écrire
                     </a>
                 </div>
-                <div class="border-t border-cyan-100 pt-8">
-                    <p class="text-gray-500">
-                        © 2024 NestCorporation. Tous droits réservés.
-                    </p>
+
+                <!-- Réseaux sociaux -->
+                <div class="glass-card rounded-2xl p-6 text-center hover-lift">
+                    <div class="w-16 h-16 bg-gradient-to-br from-cyan-500 to-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-share-alt text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Réseaux</h3>
+                    <p class="text-gray-600 text-sm mb-3">Suivez-nous</p>
+                    <div class="flex justify-center space-x-4">
+                        <a href="https://x.com/RichardMil56104" class="text-gray-400 hover:text-cyan-500 transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/richard-m-metta-ceo-9b395b257/" class="text-gray-400 hover:text-cyan-500 transition-colors">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
+
+            <div class="border-t border-cyan-100 pt-8">
+                <p class="text-gray-500">
+                    © 2024 NestCorporation. Tous droits réservés.
+                </p>
+            </div>
         </div>
-    </footer>
+    </div>
+</footer>
 
  <script>
     // Gestion des formulaires - Version ultra-robuste
